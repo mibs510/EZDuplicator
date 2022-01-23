@@ -13,13 +13,12 @@ import sys
 
 
 from EZDuplicator.version import __version__
-import EZDuplicator.lib.EZDuplicator
 
 parser = argparse.ArgumentParser(prog="setup.py",
                                  formatter_class=argparse.RawTextHelpFormatter,
                                  epilog="setup.py - EZDuplicator v{}\n"
                                         "(c) 2021 Connor McMillan "
-                                        "<connor@mcmillan.website>".format(EZDuplicator.version.__version__),
+                                        "<connor@mcmillan.website>".format(__version__),
                                  exit_on_error=False)
 parser.add_argument('--post', help='Add a post onto the semantic versioning for the wheel package.\n'
                                    'e.g. EZDuplicator-X.Y.Z.postW-py2.py3-none-any.whl',
