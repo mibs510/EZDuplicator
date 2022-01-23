@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=WereSync
+Exec=weresync-gui
+Icon=weresync
+Type=Application
+Categories=System

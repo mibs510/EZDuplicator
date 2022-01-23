@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="ubuntu-20" id="76f3bbf4-c084-4ca9-b36a-a79ed47579e3" port="22" nameFormat="DESCRIPTIVE" username="connor" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="ezduplicator" id="6db65ead-86bf-4da5-b435-6a3c25088e95" port="22" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+    </configs>
+  </component>
+</project>

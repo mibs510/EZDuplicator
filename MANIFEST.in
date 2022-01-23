@@ -1,0 +1,3 @@
+graft EZDuplicator
+global-exclude *.py[cod]
+global-exclude *~

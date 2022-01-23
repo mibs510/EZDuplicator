@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="0729561e-0ff1-413d-979f-31565c024027" name="ezduplicator">
+        <fileTransfer rootFolder="/usr/local/lib/python3.9/dist-packages/EZDuplicator" accessType="SFTP" host="ezduplicator" port="22" sshConfigId="6db65ead-86bf-4da5-b435-6a3c25088e95" sshConfig="root@ezduplicator:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="70c7cc8d-4878-44de-a6ab-d0d1d82b88fb" name="Ubuntu-20">
+        <fileTransfer rootFolder="/home/connor" accessType="SFTP" host="ubuntu-20" port="22" sshConfigId="76f3bbf4-c084-4ca9-b36a-a79ed47579e3" sshConfig="connor@ubuntu-20:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
