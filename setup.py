@@ -51,6 +51,7 @@ setup(
     author='Connor McMillan',
     author_email='connor@mcmillan.website',
     description='A simple GUI application to securely erase, duplicate, and verify USB flash memory in mass.',
+    long_description=long_description,
     python_requires=">=3.9",
     install_requires=['certifi~=2021.10.8', 'charset-normalizer~=2.0.9', 'elevate~=0.1.3', 'idna~=3.3',
                       'keyboard~=0.13.5', 'numpy~=1.21.4', 'parse~=1.19.0', 'pexpect==4.8.0', 'psutil~=5.8.0',

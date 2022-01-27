@@ -48,3 +48,9 @@ you must be certain that what you push or pull request onto GitHub has been test
 experience. Anything pushed onto the master branch is available to our customers as "updates".
 Also, verify that the update process does **NOT** brick the product. Pushes/merges to the master branch
 should only be done so by the author (Connor McMillan) or an appointed maintainer.
+
+### Debug Messages
+Accessing debug messages is possible via three methods.
+* The first is to use the integerated Debug dialog which can be accessed by tapping the Debug entry in the menu tree.
+* The second method is to forward the debug messages to a Syslog server by setting the hostname and port number of the server in the Settings window.
+* The third, and most convenient, is to access the webtail HTTP server. Open a webbrowser and open http://ezduplicator:3565
