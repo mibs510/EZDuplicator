@@ -21,4 +21,3 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         repository_username: ${{ secrets.REPOSITORY_USERNAME }}
         repository_password: ${{ secrets.REPOSITORY_PASSWORD }}
-        repository_url: ${{ secrets.REPOSITORY_URL }}
