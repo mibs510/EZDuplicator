@@ -17,6 +17,7 @@ from gi import require_version as gi_require_version
 import EZDuplicator.AboutDialog
 import EZDuplicator.AppCrashedDialog
 import EZDuplicator.BPBOverWriteDialog
+import EZDuplicator.CapacityDetailsDialog
 import EZDuplicator.ConfirmAppRestartDialog
 import EZDuplicator.ConfirmPowerOffDialog
 import EZDuplicator.ConfirmRebootDialog
@@ -58,6 +59,7 @@ class App(Gtk.ApplicationWindow):
                     'DateandTime',
                     'RestartPopover',
                     'SecureErase',
+                    'UtilitiesPopover',
                     'Verify',
                     'buttons',
                     'numberOfusbs',
@@ -77,6 +79,7 @@ class App(Gtk.ApplicationWindow):
         self.MainMenu = self.builder.get_object('MainMenu')
         self.MainMenuButton = self.builder.get_object('MainMenuButton')
         self.SecureErase = self.builder.get_object('SecureErase')
+        self.UtilitiesPopover = self.builder.get_object('UtilitiesPopover')
         self.numberOfusbs = self.builder.get_object('numberOfusbs')
         self.winMain = self.builder.get_object('winMain')
         self.winMainUSBLogo = self.builder.get_object('winMainUSBLogo')
@@ -88,10 +91,18 @@ class App(Gtk.ApplicationWindow):
         self.winMain.connect("destroy", Gtk.main_quit)
         self.builder.connect_signals(self)
         self.winMain.show_all()
+        """ Splash Screen """
+        """ This could probably be implemented elsewhere in a more official manner. """
+        os.system("mplayer -vo gl -fs expand=1920:1080 {}".format(EZDuplicator.lib.EZDuplicator.__splash_animation__))
 
         """ Keep record of pids """
         self.pids = []
         self.pids.append(os.getpid())
+
+        """ Create temp directories """
+        EZDuplicator.lib.EZDuplicator.mkdir("/tmp/mnt")
+        EZDuplicator.lib.EZDuplicator.mkdir("/tmp/mnt/target")
+        EZDuplicator.lib.EZDuplicator.mkdir("/tmp/mnt/source")
 
         """ Do not execute the following if the application is in debug mode """
         if not debug:
@@ -226,6 +237,10 @@ class App(Gtk.ApplicationWindow):
     def on_SecureErase_clicked(self, widget, user_data=None):
         """ Handler for SecureErase.clicked. """
         EZDuplicator.SecureEraseDialog_1.SecureEraseDialog_1("SecureErase")
+
+    def on_UtilitiesPopover_Capacity_Details_button_press_event(self, widget, user_data=None):
+        """ Handler for on_UtilitiesPopover_Capacity_Details_button_press_event. """
+        EZDuplicator.CapacityDetailsDialog.CapacityDetailsDialog()
 
     def on_Verify_clicked(self, widget, user_data=None):
         """ Handler for Verify.clicked. """

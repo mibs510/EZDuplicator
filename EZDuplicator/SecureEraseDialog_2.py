@@ -20,6 +20,7 @@ from gi.repository import Gtk, GLib
 import EZDuplicator.QADialog
 import EZDuplicator.lib.SecureErase
 import EZDuplicator.lib.EZDuplicator
+import EZDuplicator.WTHDialog
 
 gi_require_version('Gtk', '3.0')
 
@@ -45,6 +46,7 @@ class SecureEraseDialog_2(Gtk.Dialog):
                     'SecureEraseDialog_2_FinishButton',
                     'SecureEraseDialog_2_Image',
                     'SecureEraseDialog_2_Label',
+                    'SecureEraseDialog_2_LargeDataDetected',
                     'SecureEraseDialog_2_ProgressBar',
                     'SecureEraseDialog_2_QAButton',
                 ]
@@ -61,8 +63,9 @@ class SecureEraseDialog_2(Gtk.Dialog):
         self.SecureEraseDialog_2_Image = self.builder.get_object('SecureEraseDialog_2_Image')
         self.SecureEraseDialog_2_Image.set_from_animation(
             GdkPixbuf.PixbufAnimation.new_from_file(str(Path(__file__).parent.absolute()) + "/res/eraser-128.gif"))
-        self.SecureEraseDialog_2_ProgressBar = self.builder.get_object('SecureEraseDialog_2_ProgressBar')
         self.SecureEraseDialog_2_Label = self.builder.get_object('SecureEraseDialog_2_Label')
+        self.SecureEraseDialog_2_LargeDataDetected = self.builder.get_object('SecureEraseDialog_2_LargeDataDetected')
+        self.SecureEraseDialog_2_ProgressBar = self.builder.get_object('SecureEraseDialog_2_ProgressBar')
         self.SecureEraseDialog_2_QAButton = self.builder.get_object('SecureEraseDialog_2_QAButton')
         self.SecureEraseDialog_2.show_all()
         self.builder.connect_signals(self)
@@ -134,7 +137,8 @@ class SecureEraseDialog_2(Gtk.Dialog):
             self.stop_proc.start()
             self.SecureEraseDialog_2_Image.set_from_file(
                 str(Path(__file__).parent.absolute()) + "/res/red-warning-128.png")
-            self.BPBDuplicationDialog_Label.set_text("Fatal Error: Review debug console for further details.")
+            self.SecureEraseDialog_2_Label.set_text("Fatal Error: Review debug console for further details.\n"
+                                                    "Possible faulty source/targets.")
             return True
 
         self.number_of_completed_tasks = self.number_of_completed_tasks + 1
@@ -207,8 +211,6 @@ class SecureEraseDialog_2(Gtk.Dialog):
             self.secure_erase_proc.close()
             return True
         if "stop" in msg:
-            self.manager.shutdown()
-            del self.manager
             while self.stop_proc.is_alive():
                 self.stop_proc.terminate()
             self.stop_parent.close()
@@ -224,15 +226,23 @@ class SecureEraseDialog_2(Gtk.Dialog):
 
     def on_SecureEraseDialog_2_FinishButton_clicked(self, widget, user_data=None):
         """ Handler for SecureEraseDialog_2_FinishButton.clicked. """
-        self.manager.shutdown()
-        del self.manager
-        while self.secure_erase_proc.is_alive():
-            self.secure_erase_proc.terminate()
-        self.secure_erase_proc.close()
-        self.SecureEraseDialog_2.destroy()
+        try:
+            self.manager.shutdown()
+            del self.manager
+            while self.secure_erase_proc.is_alive():
+                self.secure_erase_proc.terminate()
+            self.secure_erase_proc.close()
+        except Exception as ex:
+            logging.error(ex)
+        finally:
+            self.SecureEraseDialog_2.destroy()
 
     def on_SecureEraseDialog_2_QAButton_clicked(self, widget, user_data=None):
         """ Handler for SecureEraseDialog_2_QAButton.clicked. """
-        EZDuplicator.QADialog.QADialog("Secure Erase QA Results",
-                                       "The following drives failed to securely\nerase during one or more passes.",
-                                       self.failed_drives)
+        current_number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_by_path)
+        if current_number_of_usbs != self.number_of_usbs:
+            EZDuplicator.WTHDialog.WTHDialog("Error: Cannot render map, targets were removed!")
+        else:
+            EZDuplicator.QADialog.QADialog("Secure Erase QA Results",
+                                           "The following drives failed to securely\nerase during one or more passes.",
+                                           self.failed_drives)

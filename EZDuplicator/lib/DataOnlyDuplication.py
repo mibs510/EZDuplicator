@@ -72,6 +72,10 @@ def data_only_duplication_process(pipe_connection, pids, failed_drives):
     EZDuplicator.lib.DataOnlyDuplication.mount_all_source_partitions(source)
     logging.info("Finished mounting all source partitions.")
 
+    """ Enable the hint if the total used space on the source exceeds more than 250MB """
+    if EZDuplicator.lib.DataOnlyDuplication.get_size_of_used_space(source) > 250000000:
+        pipe_connection.send("LargeDataDetected")
+
     """ Check the source for a bootloader """
     # boot_partition = None
     # syslinux = None
@@ -439,9 +443,13 @@ def set_partition_table(target, table_type):
 
 
 def set_partition_table_null(target):
-    with open(target, 'wb+') as usb:
-        for i in range(0, 512):
-            usb.write(int(0).to_bytes(1, 'big'))
+    try:
+        with open(target, 'wb+') as usb:
+            for i in range(0, 512):
+                usb.write(int(0).to_bytes(1, 'big'))
+    except Exception as ex:
+        logging.error(ex)
+        raise Exception(ex)
 
 
 def get_uuid(source, partition):
@@ -1026,36 +1034,36 @@ def cleanup_dirs():
 def data_only_qa(target, pipe_connection, list_of_failed_drives, list_of_source_xxhsums):
     try:
         if EZDuplicator.lib.EZDuplicator.is_blkdev_still_valid(target):
+            logging.info("{} is no longer a valid block device?".format(target))
+            """ if target not in list_of_failed_drives:
+                list_of_failed_drives.append(target) """
+            """ Increase the percentage complete otherwise it will never reach to 100% """
+            """ pipe_connection.send("Bump") """
+
+        if target not in list_of_failed_drives:
+            list_of_target_xxhsums = get_list_of_xxhsums(target, list_of_failed_drives)
             if target not in list_of_failed_drives:
-                list_of_target_xxhsums = get_list_of_xxhsums(target, list_of_failed_drives)
-                if target not in list_of_failed_drives:
-                    """ Compare the checksums from the target to those of the source """
-                    for row in list_of_target_xxhsums:
-                        for checksum in row:
-                            if not is_in_list(checksum, list_of_source_xxhsums):
-                                logging.error("{} is not in list of source xxhsums!".format(checksum))
-                                if target not in list_of_failed_drives:
-                                    list_of_failed_drives.append(target)
-                    """ Compare the checksums from the source to those of the target """
-                    for row in list_of_source_xxhsums:
-                        for checksum in row:
-                            if not is_in_list(checksum, list_of_target_xxhsums):
-                                logging.error("{} is not in list of source xxhsums!".format(checksum))
-                                if target not in list_of_failed_drives:
-                                    list_of_failed_drives.append(target)
-                    pipe_connection.send("Bump")
-                else:
-                    logging.info(
-                        "No need to get xxhsum hash for {}, failed to aquire xxhsums.".format(target))
-                    pipe_connection.send("Bump")
+                """ Compare the checksums from the target to those of the source """
+                for row in list_of_target_xxhsums:
+                    for checksum in row:
+                        if not is_in_list(checksum, list_of_source_xxhsums):
+                            logging.error("{} is not in list of source xxhsums!".format(checksum))
+                            if target not in list_of_failed_drives:
+                                list_of_failed_drives.append(target)
+                """ Compare the checksums from the source to those of the target """
+                for row in list_of_source_xxhsums:
+                    for checksum in row:
+                        if not is_in_list(checksum, list_of_target_xxhsums):
+                            logging.error("{} from {} is not in list of source xxhsums!".format(checksum, target))
+                            if target not in list_of_failed_drives:
+                                list_of_failed_drives.append(target)
+                pipe_connection.send("Bump")
             else:
-                logging.info("No need to get xxhsum hash for {}, already failed duplication process.".format(target))
+                logging.info(
+                    "No need to get xxhsum hash for {}, failed to aquire xxhsums.".format(target))
                 pipe_connection.send("Bump")
         else:
-            logging.info("{} is no longer a valid block device. Prematurely completing task.".format(target))
-            if target not in list_of_failed_drives:
-                list_of_failed_drives.append(target)
-            """ Increase the percentage complete otherwise it will never reach to 100% """
+            logging.info("No need to get xxhsum hash for {}, already failed duplication process.".format(target))
             pipe_connection.send("Bump")
     except (OSError, IOError, Exception, EOFError, SystemError, RuntimeError) as ex:
         logging.error(ex)
@@ -1064,6 +1072,30 @@ def data_only_qa(target, pipe_connection, list_of_failed_drives, list_of_source_
 
         """ Allow the progress bar to reach 100% even when exceptions occur """
         pipe_connection.send("Bump")
+
+
+def get_size_of_used_space(target):
+    try:
+        device_manager = EZDuplicator.lib.weresync.daemon.device.DeviceManager(target)
+        partitions = device_manager.get_partitions()
+        size_of_target_onek = 0
+
+        for partition in partitions:
+            size_of_target_onek += device_manager.get_partition_used(partition)
+
+        return size_of_target_onek * 1000
+
+    except Exception as ex:
+        logging.error(ex)
+        return 0
+
+
+def get_human_size(bites, decimal_place=2):
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB', 'PB']:
+        if bites < 1000.00 or unit == 'PB':
+            break
+        bites /= 1000.0
+    return f"{bites:.{decimal_place}f} {unit}"
 
 
 def get_list_of_xxhsums(target, failed_drives):
@@ -1088,7 +1120,8 @@ def get_list_of_xxhsums(target, failed_drives):
                         device_manager.mount_partition(partitions[i], temp_target)
                     else:
                         temp_target = device_manager.mount_point(partitions[i])
-                    files = [file for file in Path(temp_target).glob("**/*") if file.is_file()]
+                    files = [file for file in Path(temp_target).glob("**/*")
+                             if file.is_file() and 'System Volume Information' not in str(os.path.abspath(file))]
                     for j in range(len(files)):
                         checksum = EZDuplicator.lib.EZDuplicator.get_xxhsum_hash(
                             os.path.abspath(str(files[j])), failed_drives)

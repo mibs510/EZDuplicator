@@ -53,8 +53,13 @@ def verification_process(pipe_connection, pids, failed_drives, option):
         logging.info("Get xxhsum hash(es) from source drive {}".format(source))
         list_of_source_xxhsums = EZDuplicator.lib.DataOnlyDuplication.get_list_of_xxhsums(source, failed_drives)
         logging.info("Finished getting xxhsum hash(es) from source drive {}".format(source))
+
+        """ Enable the hint if the total used space on the source exceeds more than 250MB """
+        if EZDuplicator.lib.DataOnlyDuplication.get_size_of_used_space(source) > 250000000:
+            pipe_connection.send("LargeDataDetected")
     elif option == "BPBVerification":
         """ Get source drive hash for comparison """
+        pipe_connection("LargeDataDetected")
         EZDuplicator.lib.DataOnlyDuplication.unmount_all_partitions(source)
         for target in targets:
             EZDuplicator.lib.DataOnlyDuplication.unmount_all_partitions(target)

@@ -48,6 +48,7 @@ __json_log_file__ = __log_dir__ + "EZDApp.json"
 
 __webtail_http_server_port__ = 3565
 
+__splash_animation__ = __usr_dir__ + "/res/Intro_Light.mp4"
 
 class GracefulKiller:
     kill_now = False
@@ -650,7 +651,7 @@ def is_in_lsblk_list(target, absolute=False):
     if grep == target:
         return True
     else:
-        logging.debug("grep = {}, absolute = {}".format(grep, absolute))
+        '''logging.debug("grep = {}, absolute = {}".format(grep, absolute))'''
         return False
 
 

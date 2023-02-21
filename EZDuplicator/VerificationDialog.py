@@ -24,6 +24,7 @@ import EZDuplicator.lib.Verification
 import EZDuplicator.lib.weresync.daemon.device
 import EZDuplicator.lib.weresync.exception
 import EZDuplicator.lib.EZDuplicator
+import EZDuplicator.WTHDialog
 
 gi_require_version('Gtk', '3.0')
 
@@ -49,6 +50,7 @@ class VerificationDialog(Gtk.Dialog):
                     'VerificationDialog_FinishButton',
                     'VerificationDialog_Image',
                     'VerificationDialog_Label',
+                    'VerificationDialog_LargeDataDetected',
                     'VerificationDialog_ProgressBar',
                     'VerificationDialog_QAButton',
                 ]
@@ -67,10 +69,14 @@ class VerificationDialog(Gtk.Dialog):
             GdkPixbuf.PixbufAnimation.new_from_file(
                 str(Path(__file__).parent.absolute()) + "/res/ab-testing-128.gif"))
         self.VerificationDialog_Label = self.builder.get_object('VerificationDialog_Label')
+        self.VerificationDialog_LargeDataDetected = self.builder.get_object('VerificationDialog_LargeDataDetected')
         self.VerificationDialog_ProgressBar = self.builder.get_object('VerificationDialog_ProgressBar')
         self.VerificationDialog_QAButton = self.builder.get_object('VerificationDialog_QAButton')
         self.builder.connect_signals(self)
         self.VerificationDialog.show_all()
+
+        """ Hide this hint unless if lib.Verification.verification_process() emits a signal """
+        self.VerificationDialog_LargeDataDetected.set_visible(False)
 
         self.source_by_path = EZDuplicator.lib.EZDuplicator.get_source_by_path()
         self.number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_by_path)
@@ -138,9 +144,13 @@ class VerificationDialog(Gtk.Dialog):
             self.VerificationDialog_QAButton.set_sensitive(True)
             return True
 
+        if "LargeDataDetected" in msg:
+            self.VerificationDialog_LargeDataDetected.set_visible(True)
+
         if "Stop" in msg:
             self.stop_proc.start()
-            self.VerificationDialog_Label.set_text("Fatal Error: Review debug console for further details.")
+            self.VerificationDialog_Label.set_text("Fatal Error: Review debug console for further details.\n"
+                                                   "Possible faulty source/targets.")
             self.VerificationDialog_Image.set_from_file(
                 str(Path(__file__).parent.absolute()) + "/res/red-warning-128.png")
             return True
@@ -214,11 +224,9 @@ class VerificationDialog(Gtk.Dialog):
             self.verification_proc.close()
             return True
         if "stop" in msg:
-            self.manager.shutdown()
-            del self.manager
             while self.stop_proc.is_alive():
                 self.stop_proc.terminate()
-            self.stop_parent.close()
+            self.stop_proc.close()
             self.VerificationDialog_CancelSpinner.stop()
             self.VerificationDialog_FinishButton.set_label("Close")
             self.VerificationDialog_FinishButton.set_sensitive(True)
@@ -231,15 +239,24 @@ class VerificationDialog(Gtk.Dialog):
 
     def on_VerificationDialog_FinishButton_clicked(self, widget, user_data=None):
         """ Handler for VerificationDialog_FinishButton.clicked. """
-        self.manager.shutdown()
-        del self.manager
-        while self.verification_proc.is_alive():
-            self.verification_proc.terminate()
-        self.verification_proc.close()
-        self.VerificationDialog.destroy()
+        try:
+            self.manager.shutdown()
+            del self.manager
+            while self.verification_proc.is_alive():
+                self.verification_proc.terminate()
+            self.verification_proc.close()
+        except Exception as ex:
+            logging.error(ex)
+        finally:
+            self.VerificationDialog.destroy()
 
     def on_VerificationDialog_QAButton_clicked(self, widget, user_data=None):
         """ Handler for VerificationDialog_QAButton.clicked. """
-        EZDuplicator.QADialog.QADialog("Verification QA Results",
-                                       "The following drives have checksum\nmismatches when compared to the source.",
-                                       self.failed_drives)
+        current_number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_by_path)
+        if current_number_of_usbs != self.number_of_usbs:
+            EZDuplicator.WTHDialog.WTHDialog("Error: Cannot render map, targets were removed!")
+        else:
+            EZDuplicator.QADialog.QADialog("Verification QA Results",
+                                           "The following drives have checksum\n"
+                                           "mismatches when compared to the source.",
+                                           self.failed_drives)

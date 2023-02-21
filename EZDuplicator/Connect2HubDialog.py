@@ -164,8 +164,8 @@ class Connect2HubDialog(Gtk.Dialog):
 
         if msg == "check_for_defective_targets.QADialog.QADialog()":
             EZDuplicator.QADialog.QADialog("Data Only Duplication\nPre-Duplication Check",
-                                           "One or more targets are not equal in capacity with neighboring targets."
-                                           "\nAll targets are required to have a homogenous advertised capacity.",
+                                           "One or more targets are not equal in capacity\nwith neighboring targets."
+                                           "\nAll targets are required to have a homogenous\nadvertised capacity.",
                                            self.below_average_targets)
             self.clean_up()
             return True
@@ -180,6 +180,7 @@ class Connect2HubDialog(Gtk.Dialog):
                 "Source media not detected!\nPlease insert source media into the designated port.")
             self.NoUSBsFoundInfoBar.show()
             self.Connect2HubDialog_ContinueSpinner.stop()
+            self.Connect2HubDialog_ContinueButton.set_sensitive(True)
             self.reset_continue_process()
             return True
 

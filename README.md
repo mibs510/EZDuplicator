@@ -5,7 +5,11 @@ features commonly found on commercially available products.
 
 ![EZ Duplicator App](https://files.ezduplicator.com/f.php?h=2HDChfOu&p=1)
 
-
+# TODO
+* Improve Connect2Hub.py:`check_for_defective_targets()` function.
+* Add quantity acknowledgment after duplicating
+* Add splash animation
+* Exclude metadata files from verification (e.g. .Trash/*)
 # Development
 The following steps are needed to start hacking away:
 1. Install [Ubuntu 20.04](https://ubuntu.com/download/desktop/thank-you?version=20.04.3&architecture=amd64)

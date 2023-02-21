@@ -20,6 +20,7 @@ from gi.repository import Gtk, GLib
 import EZDuplicator.QADialog
 import EZDuplicator.lib.BPBDuplication
 import EZDuplicator.lib.EZDuplicator
+import EZDuplicator.WTHDialog
 
 gi_require_version('Gtk', '3.0')
 
@@ -45,6 +46,7 @@ class BPBDuplicationDialog(Gtk.Dialog):
                     'BPBDuplicationDialog_FinishButton',
                     'BPBDuplicationDialog_Image',
                     'BPBDuplicationDialog_Label',
+                    'BPBDuplicationDialog_LargeDataDetected',
                     'BPBDuplicationDialog_ProgressBar',
                     'BPBDuplicationDialog_QAButton',
                 ]
@@ -63,6 +65,7 @@ class BPBDuplicationDialog(Gtk.Dialog):
             GdkPixbuf.PixbufAnimation.new_from_file(
                 str(Path(__file__).parent.absolute()) + "/res/binary-code-128.gif"))
         self.BPBDuplicationDialog_Label = self.builder.get_object('BPBDuplicationDialog_Label')
+        self.BPBDuplicationDialog_LargeDataDetected = self.builder.get_object('BPBDuplicationDialog_LargeDataDetected')
         self.BPBDuplicationDialog_ProgressBar = self.builder.get_object('BPBDuplicationDialog_ProgressBar')
         self.BPBDuplicationDialog_QAButton = self.builder.get_object('BPBDuplicationDialog_QAButton')
 
@@ -139,7 +142,8 @@ class BPBDuplicationDialog(Gtk.Dialog):
             self.stop_proc.start()
             self.BPBDuplicationDialog_Image.set_from_file(
                 str(Path(__file__).parent.absolute()) + "/res/red-warning-128.png")
-            self.BPBDuplicationDialog_Label.set_text("Fatal Error: Review debug console for further details.")
+            self.BPBDuplicationDialog_Label.set_text("Fatal Error: Review debug console for further details.\n"
+                                                     "Possible faulty source/targets.")
             return True
 
         self.number_of_completed_tasks = self.number_of_completed_tasks + 1
@@ -212,8 +216,6 @@ class BPBDuplicationDialog(Gtk.Dialog):
             self.bpb_duplication_proc.close()
             return True
         if "stop" in msg:
-            self.manager.shutdown()
-            del self.manager
             while self.stop_proc.is_alive():
                 self.stop_proc.terminate()
             self.stop_parent.close()
@@ -229,16 +231,24 @@ class BPBDuplicationDialog(Gtk.Dialog):
 
     def on_BPBDuplicationDialog_FinishButton_clicked(self, widget, user_data=None):
         """ Handler for BPBDuplicationDialog_FinishButton.clicked. """
-        self.manager.shutdown()
-        del self.manager
-        while self.bpb_duplication_proc.is_alive():
-            self.bpb_duplication_proc.terminate()
-        self.bpb_duplication_proc.close()
-        self.BPBDuplicationDialog.destroy()
+        try:
+            self.manager.shutdown()
+            del self.manager
+            while self.bpb_duplication_proc.is_alive():
+                self.bpb_duplication_proc.terminate()
+            self.bpb_duplication_proc.close()
+        except Exception as ex:
+            logging.error(ex)
+        finally:
+            self.BPBDuplicationDialog.destroy()
 
     def on_BPBDuplicationDialog_QAButton_clicked(self, widget, user_data=None):
         """ Handler for BPBDuplicationDialog_QAButton.clicked. """
         logging.debug("abs_blkdevs length = {} abs_blkdevs = {}".format(len(self.failed_drives), self.failed_drives))
-        EZDuplicator.QADialog.QADialog("Bit-Per-Bit Duplication\nQA Results",
-                                       "The following drives failed\nto image or pass checksum integrity check.",
-                                       self.failed_drives)
+        current_number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_by_path)
+        if current_number_of_usbs != self.number_of_usbs:
+            EZDuplicator.WTHDialog.WTHDialog("Error: Cannot render map, targets were removed!")
+        else:
+            EZDuplicator.QADialog.QADialog("Bit-Per-Bit Duplication\nQA Results",
+                                           "The following drives failed\nto image or pass checksum integrity check.",
+                                           self.failed_drives)

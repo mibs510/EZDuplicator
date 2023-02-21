@@ -23,6 +23,7 @@ import EZDuplicator.lib.weresync.daemon.device
 import EZDuplicator.lib.weresync.exception
 import EZDuplicator.lib.weresync.plugins
 import EZDuplicator.lib.EZDuplicator
+import EZDuplicator.WTHDialog
 
 gi_require_version('Gtk', '3.0')
 
@@ -50,6 +51,7 @@ class DataOnlyDuplicationDialog(Gtk.Dialog):
                     'DataOnlyDuplicationDialog_Label',
                     'DataOnlyDuplicationDialog_ProgressBar',
                     'DataOnlyDuplicationDialog_QAButton',
+                    'DataOnlyDuplication_LargeDataDetected',
                 ]
             )
         except Exception as ex:
@@ -68,13 +70,17 @@ class DataOnlyDuplicationDialog(Gtk.Dialog):
         self.DataOnlyDuplicationDialog_Label = self.builder.get_object('DataOnlyDuplicationDialog_Label')
         self.DataOnlyDuplicationDialog_ProgressBar = self.builder.get_object('DataOnlyDuplicationDialog_ProgressBar')
         self.DataOnlyDuplicationDialog_QAButton = self.builder.get_object('DataOnlyDuplicationDialog_QAButton')
+        self.DataOnlyDuplication_LargeDataDetected = self.builder.get_object('DataOnlyDuplication_LargeDataDetected')
         self.DataOnlyDuplicationDialog.show_all()
         self.builder.connect_signals(self)
 
+        """ Hide this hint unless if lib.Verification.verification_process() emits a signal """
+        self.DataOnlyDuplication_LargeDataDetected.set_visible(False)
+
         """ duplication_task_manager() + partclone_task_manager() + qa_task_manager() + grab checksums from source
             + clean the source partitions + cleanup + some extras so not to reach 100% until told do so """
-        self.source_bypath = EZDuplicator.lib.EZDuplicator.get_config_setting('source_dev_path')
-        self.number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_bypath)
+        self.source_by_path = EZDuplicator.lib.EZDuplicator.get_config_setting('source_dev_path')
+        self.number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_by_path)
         self.number_of_tasks = ((self.number_of_usbs * 3) + 5)
         self.number_of_completed_tasks = 0
         self.manager = multiprocessing.Manager()
@@ -141,9 +147,13 @@ class DataOnlyDuplicationDialog(Gtk.Dialog):
             self.DataOnlyDuplicationDialog_QAButton.set_sensitive(True)
             return True
 
+        if "LargeDataDetected" in msg:
+            self.DataOnlyDuplication_LargeDataDetected.set_visible(True)
+
         if "Stop" in msg:
             self.stop_proc.start()
-            self.DataOnlyDuplicationDialog_Label.set_text("Fatal Error: Review debug console for further details.")
+            self.DataOnlyDuplicationDialog_Label.set_text("Fatal Error: Review debug console for further details.\n"
+                                                          "Possible faulty source/targets.")
             self.DataOnlyDuplicationDialog_Image.set_from_file(
                 str(Path(__file__).parent.absolute()) + "/res/red-warning-128.png")
             return True
@@ -224,9 +234,6 @@ class DataOnlyDuplicationDialog(Gtk.Dialog):
             logging.info("Finished terminating main process (data_only_duplication_proc)...")
             return True
         if "stop" in msg:
-            logging.info("Terminating multiprocessing.Manager() process...")
-            self.manager.shutdown()
-            del self.manager
             logging.info("Terminating stop_proc...")
             while self.stop_proc.is_alive():
                 self.stop_proc.terminate()
@@ -243,15 +250,23 @@ class DataOnlyDuplicationDialog(Gtk.Dialog):
 
     def on_DataOnlyDuplicationDialog_FinishButton_clicked(self, widget, user_data=None):
         """ Handler for DataOnlyDuplicationDialog_FinishButton.clicked. """
-        self.manager.shutdown()
-        del self.manager
-        while self.data_only_duplication_proc.is_alive():
-            self.data_only_duplication_proc.terminate()
-        self.data_only_duplication_proc.close()
-        self.DataOnlyDuplicationDialog.destroy()
+        try:
+            self.manager.shutdown()
+            del self.manager
+            while self.data_only_duplication_proc.is_alive():
+                self.data_only_duplication_proc.terminate()
+            self.data_only_duplication_proc.close()
+        except Exception as ex:
+            logging.error(ex)
+        finally:
+            self.DataOnlyDuplicationDialog.destroy()
 
     def on_DataOnlyDuplicationDialog_QAButton_clicked(self, widget, user_data=None):
         """ Handler for DataOnlyDuplicationDialog_QAButton.clicked. """
-        EZDuplicator.QADialog.QADialog("Data Only Duplication\nQA Results",
-                                       "The following drives failed\nto image or pass checksum integrity check.",
-                                       self.failed_drives)
+        current_number_of_usbs = EZDuplicator.lib.EZDuplicator.get_number_or_list_of_usbs('number', self.source_by_path)
+        if current_number_of_usbs != self.number_of_usbs:
+            EZDuplicator.WTHDialog.WTHDialog("Error: Cannot render map, targets were removed!")
+        else:
+            EZDuplicator.QADialog.QADialog("Data Only Duplication\nQA Results",
+                                           "The following drives failed\nto image or pass checksum integrity check.",
+                                           self.failed_drives)

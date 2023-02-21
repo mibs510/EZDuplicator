@@ -244,9 +244,13 @@ class DeviceManager:
         output, error = process.communicate()
         exit_code = process.returncode
         if exit_code != 0:
+            if error is None:
+                msg = "partprobe(8) exit code is {} but nothing came out of stderr.".format(exit_code)
+            else:
+                msg = str(error, "utf-8")
             raise EZDuplicator.lib.weresync.exception.DeviceError(self.device,
                                                                   "Non-zero exit code",
-                                                                  str(error, "utf-8"))
+                                                                  msg)
         result = str(output, "utf-8")
         for table_type in SUPPORTED_PARTITION_TABLE_TYPES:
             if table_type in result:
@@ -264,9 +268,13 @@ class DeviceManager:
         output, error = query_proc.communicate()
         exit_code = query_proc.returncode
         if exit_code != 0:
+            if error is None:
+                msg = "blockdev(8) exit code is {} but nothing came out of stderr.".format(exit_code)
+            else:
+                msg = str(error, "utf-8")
             raise EZDuplicator.lib.weresync.exception.DeviceError(self.device,
                                                                   "Non-zero exit code",
-                                                                  str(error, "utf-8"))
+                                                                  msg)
 
         return int(output)  # should always be valid
 
