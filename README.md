@@ -1,15 +1,57 @@
-![EZ Duplicator](https://files.ezduplicator.com/f.php?h=2nyeqxyT&p=1)
+![EZ Duplicator](assets/banner.png)
 
 A simple easy-to-use mass USB cloning/duplication GUI application that offers most (often more) 
-features commonly found on commercially available products. 
+features commonly found on commercially available products.
 
-![EZ Duplicator App](https://files.ezduplicator.com/f.php?h=2HDChfOu&p=1)
+### Copyright Disclaimer
+This project was made possible and sponsored by [DIGITALVAR](https://digitalvar.com). I was not paid or hired while my employment at [DIGITALVAR](https://digitalvar.com) to produce, develope, or design this project. **I reserve all rights to this project.**
+
+# Screenshots
+
+[![EZ Duplicator App](assets/screenshot-collage_400x400.png)](assets/screenshots)
+
+# 12VPM
+
+The 12V Power Manager manages the power to the USB rails. This is needed for Linux to properly discover all USB endpoints.
+
+Click image for more 
+### 12VPM V1
+The first iteration of the power manager involved no more than off-the-shelf products.
+[![12VPM V1](assets/hardware/12VPM_V1.jpg)](assets/hardware)
+
+### 12VPM V2
+The second iteration of the power manager that integrates a temperature control for the cabinet fans.
+This was my first PCB design involving two power planes (GND & +5V), case fitment, and functionality.
+[![12VPM V2](assets/hardware/12VPM_V2.jpg)](assets/hardware)
+
+### 12VPM V3???
+
+TBD. However, I would definitely get rid of the Arduino in favor of an STM32. Maybe add support for an industrial signal light?
 
 # TODO
+* Properly comment all functions/methods/classes/etc
+* Update `update_twelve_vpm()` to support 12VPM V2
+* Add temperature settings into `SettingsDialog.py`to support new features of the 12VPM V2
 * Improve Connect2Hub.py:`check_for_defective_targets()` function.
 * Add quantity acknowledgment after duplicating
-* Add splash animation
-* Exclude metadata files from verification (e.g. .Trash/*)
+* ~~Add splash animation~~
+* ~~Exclude metadata files from verification (e.g. .Trash/*)~~
+* Make `CapacityDetailsDialog` look prettier
+
+# Features
+* Add webGUI
+  * To support features mentioned below and advanced settings for said features
+* Add visual QA for labels. OpenCV?
+* Add reports
+* Add audit information for each imaged target that resides hidden on the target
+* Add ability to print generic lot labels
+* Add push notifications
+
+# Product Documentation
+Lots of WIP but check it out!
+
+[https://help.ezduplicator.com](https://help.ezduplicator.com)
+
 # Development
 The following steps are needed to start hacking away:
 1. Install [Ubuntu 20.04](https://ubuntu.com/download/desktop/thank-you?version=20.04.3&architecture=amd64)
@@ -30,7 +72,7 @@ The following steps are needed to start hacking away:
    1. Use Glade to edit `EZDuplicator/res/window.ui` (pre-installed by running `setup.sh`)
    2. Use [Glader](https://github.com/welbornprod/glader) to generate Gtk.Dialog/Window/* Classes easily (**NOT** pre-installed by running `setup.sh`. Manual installation and setup required.)
 2. Upload wheel package onto the development repository by selecting mkpypi-dev Run/Debug Configuration on the top right-hand corner and running (Shift + F10)
-   1. ![mkpipy-dev](https://files.ezduplicator.com/f.php?h=3Hk1lBD6&p=1)
+   1. ![mkpipy-dev](assets/mkpypi-dev.png)
 3. Test changes on the developer candidate 
    1. Verify developer candidate Update Repository is set to "Development" under Settings > Update Repository 
    2. Changes must pass the following criteria:
@@ -41,7 +83,7 @@ The following steps are needed to start hacking away:
       1. Use Git Commit Template to submit a proper commit message
 5. Upon approval, maintainer will merge pull request with the master branch which triggers GitHub to upload new package onto the custom Production pypi server.
 
-### Updates
+### OTA Updates
 There are two repositories where updates are pushed to.
 Stable and tested updates are pushed onto the "Production" repository. The "Development" repository is meant to be isolated from
 the production repository and where developers can push to test and
