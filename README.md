@@ -4,7 +4,7 @@ A simple easy-to-use mass USB cloning/duplication GUI application that offers mo
 features commonly found on commercially available products.
 
 ### Copyright Disclaimer
-This project was made possible and sponsored by [DIGITALVAR](https://digitalvar.com). I was not paid or hired while my employment at [DIGITALVAR](https://digitalvar.com) to produce, develope, or design this project. **I reserve all rights to this project.**
+This project was made possible and sponsored by [DIGITALVAR](https://digitalvar.com). I was not paid, hired, or contracted while my employment at [DIGITALVAR](https://digitalvar.com) to produce, develope, or design this project. **I reserve all rights to this project.**
 
 # Screenshots
 
