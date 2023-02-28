@@ -26,19 +26,20 @@ This was my first PCB design involving two power planes (GND & +5V), case fitmen
 
 ### 12VPM V3???
 
-TBD. However, I would definitely get rid of the Arduino in favor of an STM32. Maybe add support for an industrial signal light?
+TBD. However, I would definitely get rid of the Arduino in favor of an STM32 (fully incorporated, no headers for a drop-in).
+Maybe add support for a stack light?
 
 # TODO
-* Properly comment all functions/methods/classes/etc
+* Properly document & comment all functions/methods/classes/etc
 * Update `update_twelve_vpm()` to support 12VPM V2
 * Add temperature settings into `SettingsDialog.py`to support new features of the 12VPM V2
 * Improve Connect2Hub.py:`check_for_defective_targets()` function.
 * Add quantity acknowledgment after duplicating
 * ~~Add splash animation~~
-* ~~Exclude metadata files from verification (e.g. .Trash/*)~~
+* ~~Exclude trash/recycle files from verification & data-only duplication (e.g. .Trash/*)~~
 * Make `CapacityDetailsDialog` look prettier
 
-# Features
+# Future Features To Implement
 * Add webGUI
   * To support features mentioned below and advanced settings for said features
 * Add visual QA for labels. OpenCV?
@@ -46,9 +47,11 @@ TBD. However, I would definitely get rid of the Arduino in favor of an STM32. Ma
 * Add audit information for each imaged target that resides hidden on the target
 * Add ability to print generic lot labels
 * Add push notifications
-
+* Add support for checking native NT file permissions via the Master File Table [(MFT)](https://learn.microsoft.com/en-us/windows/win32/fileio/master-file-table)
+* Add stack light support
+  * Make it compatible for optional use.
 # Product Documentation
-Lots of WIP but check it out!
+Lots of WIP!
 
 [https://help.ezduplicator.com](https://help.ezduplicator.com)
 
