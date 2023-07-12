@@ -44,7 +44,8 @@ Maybe add support for a stack light?
   * To support features mentioned below and advanced settings for said features
 * Add visual QA for labels. OpenCV?
 * Add reports
-* Add audit information for each imaged target that resides hidden on the target
+* Add audit information for each imaged target that resides hidden & nonobstructive on the target
+  * Create a Windows application to retrieve this information for investigation purposes
 * Add ability to print generic lot labels
 * Add push notifications
 * Add support for checking native NT file permissions via the Master File Table [(MFT)](https://learn.microsoft.com/en-us/windows/win32/fileio/master-file-table)
